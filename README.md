@@ -4,12 +4,19 @@ Simple file transfer server in Python.
 
 ## Usage
 
-- Server:
+### Server
 ```bash
-python3 server.py [PORT]
+python3 server.py [PORT] [DIRECTORY]
 ```
 
-- Client:
+### Clients
+
+#### Send
 ```bash
-python3 client.py [HOST] [PORT] [FILENAME]
+python3 send.py [HOST] [PORT] [FILENAME]
+```
+
+#### Recv
+```bash
+python3 recv.py [HOST] [PORT] [DIRECTORY]
 ```
