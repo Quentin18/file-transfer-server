@@ -9,6 +9,8 @@ import os
 import socket
 
 BUFFER_SIZE = 1024
+SEPARATOR = '<SEPARATOR>'
+SEND_CODE = 'SEND'
 
 
 def sendfile(host, port, filename):
@@ -25,8 +27,8 @@ def sendfile(host, port, filename):
     s.connect((host, port))
     print('Connected.')
 
-    # send the filename
-    s.send(filename.encode())
+    # send the code and the filename
+    s.send(SEPARATOR.join([SEND_CODE, filename]).encode())
     reply = s.recv(BUFFER_SIZE).decode()
 
     if reply != 'file-accepted':

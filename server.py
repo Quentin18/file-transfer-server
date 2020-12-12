@@ -12,6 +12,8 @@ import logging
 
 BUFFER_SIZE = 1024
 BACKLOG = 10
+SEPARATOR = '<SEPARATOR>'
+SEND_CODE = 'SEND'
 
 
 def logger_config(level, name):
@@ -88,24 +90,29 @@ class Server:
         """
         Method to manage a client thread and to receive a new file.
         """
-        # receive filename
-        filename = conn.recv(BUFFER_SIZE).decode()
-        # keep only the basename of the file
-        filename = os.path.basename(filename)
-        conn.send('file-accepted'.encode())
+        data = conn.recv(BUFFER_SIZE).decode().split(SEPARATOR)
+        # receive code
+        code = data[0]
 
-        # start receiving the content of the file from the connection
-        logger.debug(f'Receiving the file {filename}')
-        with open(os.path.join(self.directory, filename), 'wb') as f:
-            data = conn.recv(BUFFER_SIZE)
-            while data:
-                f.write(data)
+        if code == SEND_CODE:
+            # get filename
+            filename = data[1]
+            # keep only the basename of the file
+            filename = os.path.basename(filename)
+            conn.send('file-accepted'.encode())
+
+            # start receiving the content of the file from the connection
+            logger.debug(f'Receiving the file {filename}')
+            with open(os.path.join(self.directory, filename), 'wb') as f:
                 data = conn.recv(BUFFER_SIZE)
+                while data:
+                    f.write(data)
+                    data = conn.recv(BUFFER_SIZE)
 
-        logger.debug(f'File {filename} received')
+            logger.debug(f'File {filename} received')
 
-        # add filename to the list
-        self.filelist.add(filename)
+            # add filename to the list
+            self.filelist.add(filename)
 
         # close connection
         conn.close()
