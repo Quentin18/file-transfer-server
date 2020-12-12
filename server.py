@@ -40,10 +40,13 @@ logger = logger_config(level=logging.DEBUG, name='FileTransferServer')
 
 class Server:
     """Manages the file transfer server."""
-    def __init__(self, port, host='0.0.0.0'):
+    def __init__(self, port, directory, host='0.0.0.0'):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
         self.port = port
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+        self.directory = directory
         self.accept_connections()
 
     def accept_connections(self):
@@ -73,7 +76,7 @@ class Server:
 
         # start receiving the content of the file from the connection
         logger.debug(f'Receiving the file {filename}')
-        with open(filename, 'wb') as f:
+        with open(os.path.join(self.directory, filename), 'wb') as f:
             data = conn.recv(BUFFER_SIZE)
             while data:
                 f.write(data)
@@ -88,8 +91,9 @@ class Server:
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) == 2:
+    if len(args) == 3:
         port = int(args[1])
-        server = Server(port)
+        directory = args[2]
+        server = Server(port, directory)
     else:
-        print('Usage: python3 server.py [PORT]')
+        print('Usage: python3 server.py [PORT] [DIRECTORY]')
