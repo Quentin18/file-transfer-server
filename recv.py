@@ -7,6 +7,7 @@ Date: 2020
 import sys
 import os
 import socket
+import zipfile
 
 BUFFER_SIZE = 1024
 RECV_CODE = 'RECV'
@@ -35,14 +36,24 @@ def recvfile(host, port, directory):
         print('Exit.')
 
     else:
+        # create zip file with revovered files
         zip_name = os.path.join(directory, ZIP_NAME)
-        print(f'Recovering the files...')
+        print('Receiving the files...')
         with open(zip_name, 'wb') as f:
             data = s.recv(BUFFER_SIZE)
             while data:
                 f.write(data)
                 data = s.recv(BUFFER_SIZE)
-        print(f'Files recovered successfully!')
+
+        # extract files
+        print('Extracting the files...')
+        with zipfile.ZipFile(zip_name, 'r') as f:
+            f.extractall(directory)
+
+        print('Done')
+
+        # remove zip file
+        os.remove(zip_name)
 
     # close the socket
     s.close()
