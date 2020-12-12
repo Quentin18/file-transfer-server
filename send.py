@@ -55,4 +55,4 @@ if __name__ == "__main__":
         filename = args[3]
         sendfile(host, port, filename)
     else:
-        print('Usage: python3 client.py [HOST] [PORT] [FILENAME]')
+        print('Usage: python3 send.py [HOST] [PORT] [FILENAME]')
