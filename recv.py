@@ -24,21 +24,21 @@ def recvfile(host, port, directory):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # connect to the server
-    print(f'Connecting to {host}:{port}...')
+    print(f'[+] Connecting to {host}:{port}...')
     s.connect((host, port))
-    print('Connected.')
+    print('[+] Connected.')
 
     # send action code to the server
     s.send(RECV_CODE.encode())
     reply = s.recv(BUFFER_SIZE).decode()
 
     if reply != 'recovering':
-        print('Exit.')
+        print('[+] Exit.')
 
     else:
         # create zip file with revovered files
         zip_name = os.path.join(directory, ZIP_NAME)
-        print('Receiving the files...')
+        print('[+] Receiving the files...')
         with open(zip_name, 'wb') as f:
             data = s.recv(BUFFER_SIZE)
             while data:
@@ -46,18 +46,18 @@ def recvfile(host, port, directory):
                 data = s.recv(BUFFER_SIZE)
 
         # extract files
-        print('Extracting the files...')
+        print('[+] Extracting the files...')
         with zipfile.ZipFile(zip_name, 'r') as f:
             f.extractall(directory)
 
-        print('Done')
+        print('[+] Done')
 
         # remove zip file
         os.remove(zip_name)
 
     # close the socket
     s.close()
-    print('Connexion closed.')
+    print('[+] Connexion closed.')
 
 
 if __name__ == "__main__":

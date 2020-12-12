@@ -17,36 +17,36 @@ def sendfile(host, port, filename):
     """Sends a file to the server."""
     # check if the file exists
     if not os.path.exists(filename):
-        raise FileExistsError(f'File {filename} not found.')
+        raise FileExistsError(f'[+] File {filename} not found.')
 
     # create socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # connect to the server
-    print(f'Connecting to {host}:{port}...')
+    print(f'[+] Connecting to {host}:{port}...')
     s.connect((host, port))
-    print('Connected.')
+    print('[+] Connected.')
 
     # send the code and the filename
     s.send(SEPARATOR.join([SEND_CODE, filename]).encode())
     reply = s.recv(BUFFER_SIZE).decode()
 
     if reply != 'file-accepted':
-        print('The server refused the file.')
+        print('[+] The server refused the file.')
 
     else:
         # start sending the file
-        print(f'Sending the file {filename}...')
+        print(f'[+] Sending the file {filename}...')
         with open(filename, 'rb') as f:
             data = f.read(BUFFER_SIZE)
             while data:
                 s.send(data)
                 data = f.read(BUFFER_SIZE)
-        print(f'File sent!')
+        print(f'[+] Done.')
 
     # close the socket
     s.close()
-    print('Connexion closed.')
+    print('[+] Connexion closed.')
 
 
 if __name__ == "__main__":
