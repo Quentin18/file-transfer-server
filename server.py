@@ -143,7 +143,8 @@ class Server:
                 zip_name = os.path.join(self.directory, ZIP_NAME)
                 with zipfile.ZipFile(zip_name, 'w') as f:
                     for filename in self.filelist.get_list():
-                        f.write(os.path.join(self.directory, filename))
+                        f.write(os.path.join(self.directory, filename),
+                                filename)
 
                 # send zip file
                 logger.debug(f'Sending the files not recovered')
