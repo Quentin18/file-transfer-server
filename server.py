@@ -38,6 +38,25 @@ def logger_config(level, name):
 logger = logger_config(level=logging.DEBUG, name='FileTransferServer')
 
 
+class FileList:
+    """Manage the ".files" file to stock the list of files."""
+    def __init__(self, directory, name='.files'):
+        self.directory = directory
+        self.filename = os.path.join(directory, name)
+        self.create_filelist()
+
+    def create_filelist(self):
+        """Create the ".files" file."""
+        if not os.path.exists(self.filename):
+            with open(self.filename, 'w'):
+                pass
+
+    def add(self, filename):
+        """Add a filename to the filelist."""
+        with open(self.filename, 'a') as f:
+            f.write(filename + '\n')
+
+
 class Server:
     """Manages the file transfer server."""
     def __init__(self, port, directory, host='0.0.0.0'):
@@ -47,6 +66,7 @@ class Server:
         if not os.path.exists(directory):
             os.mkdir(directory)
         self.directory = directory
+        self.filelist = FileList(directory)
         self.accept_connections()
 
     def accept_connections(self):
@@ -83,6 +103,9 @@ class Server:
                 data = conn.recv(BUFFER_SIZE)
 
         logger.debug(f'File {filename} received')
+
+        # add filename to the list
+        self.filelist.add(filename)
 
         # close connection
         conn.close()
