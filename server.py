@@ -64,8 +64,13 @@ class FileList:
     def get_list(self):
         """Returns the list of files."""
         with open(self.filename) as f:
-            data = f.read()
-        return data.split('\n')
+            data = f.read().strip()
+        return data.split('\n') if data != '' else []
+
+    def clear(self):
+        """Clear the content of the file ".files"."""
+        with open(self.filename, 'w'):
+            pass
 
 
 class Server:
@@ -126,24 +131,33 @@ class Server:
 
         # RECV action
         elif code == RECV_CODE:
-            conn.send('recovering'.encode())
-            # create zip file with files to send
-            zip_name = os.path.join(self.directory, ZIP_NAME)
-            with zipfile.ZipFile(zip_name, 'w') as f:
-                for filename in self.filelist.get_list():
-                    f.write(os.path.join(self.directory, filename))
+            # get file list
+            filelist = self.filelist.get_list()
 
-            # send zip file
-            logger.debug(f'Sending the files not recovered')
-            with open(zip_name, 'rb') as f:
-                data = f.read(BUFFER_SIZE)
-                while data:
-                    conn.send(data)
+            # send number of files to send
+            nb_files = len(filelist)
+            conn.send(str(nb_files).encode())
+
+            if nb_files != 0:
+                # create zip file with files to send
+                zip_name = os.path.join(self.directory, ZIP_NAME)
+                with zipfile.ZipFile(zip_name, 'w') as f:
+                    for filename in self.filelist.get_list():
+                        f.write(os.path.join(self.directory, filename))
+
+                # send zip file
+                logger.debug(f'Sending the files not recovered')
+                with open(zip_name, 'rb') as f:
                     data = f.read(BUFFER_SIZE)
+                    while data:
+                        conn.send(data)
+                        data = f.read(BUFFER_SIZE)
 
-            os.remove(zip_name)
+                # remove zip file and clear file list
+                os.remove(zip_name)
+                self.filelist.clear()
 
-            logger.debug(f'Files sent successfully')
+                logger.debug(f'Files sent successfully')
 
         # close connection
         conn.close()

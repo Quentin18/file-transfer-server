@@ -30,15 +30,15 @@ def recvfile(host, port, directory):
 
     # send action code to the server
     s.send(RECV_CODE.encode())
-    reply = s.recv(BUFFER_SIZE).decode()
+    nb_files = int(s.recv(BUFFER_SIZE).decode())
 
-    if reply != 'recovering':
-        print('[+] Exit.')
+    if nb_files == 0:
+        print('[+] No files to recover. Exit.')
 
     else:
         # create zip file with revovered files
         zip_name = os.path.join(directory, ZIP_NAME)
-        print('[+] Receiving the files...')
+        print(f'[+] Receiving {nb_files} files...')
         with open(zip_name, 'wb') as f:
             data = s.recv(BUFFER_SIZE)
             while data:
