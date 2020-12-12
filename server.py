@@ -9,11 +9,14 @@ import threading
 import sys
 import os.path
 import logging
+import zipfile
 
 BUFFER_SIZE = 1024
 BACKLOG = 10
 SEPARATOR = '<SEPARATOR>'
 SEND_CODE = 'SEND'
+RECV_CODE = 'RECV'
+ZIP_NAME = 'data.zip'
 
 
 def logger_config(level, name):
@@ -58,6 +61,12 @@ class FileList:
         with open(self.filename, 'a') as f:
             f.write(filename + '\n')
 
+    def get_list(self):
+        """Returns the list of files."""
+        with open(self.filename) as f:
+            data = f.read()
+        return data.split('\n')
+
 
 class Server:
     """Manages the file transfer server."""
@@ -94,6 +103,7 @@ class Server:
         # receive code
         code = data[0]
 
+        # SEND action
         if code == SEND_CODE:
             # get filename
             filename = data[1]
@@ -113,6 +123,27 @@ class Server:
 
             # add filename to the list
             self.filelist.add(filename)
+
+        # RECV action
+        elif code == RECV_CODE:
+            conn.send('recovering'.encode())
+            # create zip file with files to send
+            zip_name = os.path.join(self.directory, ZIP_NAME)
+            with zipfile.ZipFile(zip_name, 'w') as f:
+                for filename in self.filelist.get_list():
+                    f.write(os.path.join(self.directory, filename))
+
+            # send zip file
+            logger.debug(f'Sending the files not recovered')
+            with open(zip_name, 'rb') as f:
+                data = f.read(BUFFER_SIZE)
+                while data:
+                    conn.send(data)
+                    data = f.read(BUFFER_SIZE)
+
+            os.remove(zip_name)
+
+            logger.debug(f'Files sent successfully')
 
         # close connection
         conn.close()
