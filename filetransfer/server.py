@@ -19,28 +19,35 @@ RECV_CODE = 'RECV'
 ZIP_NAME = 'data.zip'
 
 
-def logger_config(level, name):
+def logger_config(level, name,
+                  fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                  filename=None):
     # create logger
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
-    # console handler
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-
     # formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(fmt)
 
-    # add to logger
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    # file handler
+    if filename is not None:
+        hdrl = logging.FileHandler(filename)
+    # console handler
+    else:
+        hdrl = logging.StreamHandler()
+
+    hdrl.setLevel(level)
+    hdrl.setFormatter(formatter)
+    logger.addHandler(hdrl)
 
     return logger
 
 
 # create logger
 logger = logger_config(level=logging.DEBUG, name='FileTransferServer')
+transfer_logger = logger_config(
+    level=logging.DEBUG, name='transfer', fmt='%(asctime)s;%(message)s',
+    filename='transfer.log')
 
 
 class FileList:
@@ -145,6 +152,7 @@ class Server:
                     for filename in self.filelist.get_list():
                         f.write(os.path.join(self.directory, filename),
                                 filename)
+                        transfer_logger.debug(filename)
 
                 # send zip file
                 logger.debug(f'Sending the files not recovered')
